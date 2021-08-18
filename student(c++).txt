@@ -1,0 +1,382 @@
+#include<iostream>
+#include<string.h>
+#include<cstdlib>
+#include<iomanip>
+using namespace std;
+
+
+
+struct node
+{
+	char name[50],rollnumber[50],mark[50],attendance_in_percentage[50],contact[50];
+	node* left;
+	node* right;
+	int height;
+};
+node* root;
+
+class avl
+{
+
+public :
+	avl()
+	{
+		root = NULL;
+	}
+
+int height(node* t)
+{
+	if(t==NULL)
+	   return -1;
+	else
+	   return t->height;
+}
+
+ int balance(node* t)
+    {
+        if(t == NULL)
+            return 0;
+        else
+            return height(t->left) - height(t->right);
+    }
+
+node* findMin(node* t)
+        {
+            if(t!=NULL)
+              while(t->left!=NULL)
+                 t=t->left;
+            return t;
+               
+        }
+    
+node* findMax(node* t)
+        {
+            if(t!=NULL)
+              while(t->right!=NULL)
+                 t=t->right;
+            return t;
+        }
+
+node* insert(char* name,char* rollnumber,char* mark,char* attendance_in_percentage,char* contact,node* t)
+{   
+    int cmp;
+    cmp = strcasecmp(name,t->name);
+	if(t==NULL)
+	
+	
+	{
+	
+	
+	t = new node;
+	t->left = t->right = NULL;
+	strcpy(t->name,name);
+	strcpy(t->rollnumber,rollnumber);
+	strcpy(t->mark,mark);
+	strcpy(t->attendance_in_percentage,attendance_in_percentage);
+	strcpy(t->contact,contact);
+    
+	}
+	
+    else if(cmp<0)
+    {
+    	t->left = insert(name,rollnumber,mark,attendance_in_percentage,contact ,t->left);
+    	if(height(t->left) - height(t->right) == 2)
+    	{
+		
+    	  if(strcasecmp(name,t->left->name)<0)
+		    t = SingleRotateWithLeft(t);
+    	  else
+    	    t = DoubleRotateWithRight(t);
+         }
+	}
+	
+	
+	
+    else if(cmp>0)
+   {
+   	    t->right = insert(name,rollnumber,mark,attendance_in_percentage,contact, t->right);
+   	    if(height(t->left) - height(t->right) == -2)
+   	    {
+		   
+   	        if(strcasecmp(name,t->right->name)>0)
+   	        t = SingleRotateWithRight(t);
+   	    else
+   	        t = DoubleRotateWithRight(t);
+   	    }
+   }
+   
+   t->height = max(height(t->left),height(t->right)) + 1;
+   return t;
+}
+
+
+node* remove(char* std, node* t)
+    {
+         node* temp;
+         int cmp;
+         cmp = strcasecmp(std,t->name);
+         
+
+        // Element not found
+        if(t == NULL)
+            return NULL;
+
+        // Searching for element
+        else if(cmp<0)
+            t->left = remove(std, t->left);
+        else if(cmp>0)
+            t->right = remove(std, t->right);
+
+        // Element found
+        // With 2 children  
+        else if(t->left != NULL && t->right != NULL)
+        {
+            temp = findMin(t->right);
+            strcpy(t->name,temp->name);
+            strcpy(t->rollnumber,temp->rollnumber);
+            strcpy(t->mark,temp->mark);
+            strcpy(t->attendance_in_percentage,temp->attendance_in_percentage);
+            strcpy(t->contact,temp->contact);
+            t->right = remove(t->name, t->right);
+        }
+        // With one or zero child
+        else
+        {
+            temp = t;
+            if(t->left == NULL)
+                t = t->right;
+            else if(t->right == NULL)
+                t = t->left;
+            delete temp;
+        }
+        if(t == NULL)
+            return t;
+
+        t->height = max(height(t->left), height(t->right))+1;
+
+       
+        if(height(t->left) - height(t->right) == 2)
+        {
+           
+            if(height(t->left->left) - height(t->left->right) == 1)
+                return SingleRotateWithLeft(t);
+           
+            else
+                return DoubleRotateWithLeft(t);
+        }
+       
+        else if(height(t->left) - height(t->right) == -2)
+        {
+          
+            if(height(t->right->right) - height(t->right->left) == 1)
+                return SingleRotateWithRight(t);
+           
+            else
+                return DoubleRotateWithRight(t);
+        }
+        return t;
+        
+    }
+   
+node* SingleRotateWithRight(node* t)
+{
+	node* s = t->right;
+	t->right = s->left;
+	s->left = t;
+	t->height = max(height(t->left),height(t->right)) + 1;
+	s->height = max(height(s->right),t->height) + 1;
+	return s;
+}
+
+node* SingleRotateWithLeft(node* t)
+{
+	node* s = t->left;
+	t->left = s->right;
+	s->right = t;
+	t->height = max(height(t->right),height(t->left)) + 1;
+	s->height = max(height(s->left),t->height) + 1;
+	return s;
+}
+
+node* DoubleRotateWithLeft(node* t)
+{
+	t->left = SingleRotateWithRight(t->left);
+	return SingleRotateWithLeft(t);
+}
+
+
+node* DoubleRotateWithRight(node* t)
+{
+	t->right = SingleRotateWithLeft(t->right);
+	return SingleRotateWithRight(t);
+}
+
+int search(char *std,node* t)
+{
+
+	while(t!=NULL)
+	{
+		int cmp=strcasecmp( std , t->name);
+		if(cmp==0)
+		{
+			cout<<"\n\nmark is :\t"<<t->mark<<endl;
+			return 1;
+
+		}
+		else if(cmp<0)
+			{
+				t=t->left;
+			}
+		else if(cmp>0)
+		{
+			t=t->right;
+		}
+
+	}
+
+	return -1;
+}
+
+
+
+
+void insert(char* name,char* rollnumber,char* mark,char* attendance_in_percentage,char* contact)
+{
+	root = insert(name,rollnumber,mark,attendance_in_percentage,contact,root);
+}
+
+void remove(char* std)
+{
+	root = remove(std,root);
+}
+
+
+int search(char* std)
+
+{
+	if (search(std, root)){
+        return 1;
+        cout << "MARK FOUND" << endl;
+    }
+    else{
+	
+        return -1;
+        cout << "MARK NOT FOUND " << endl;
+    }
+}
+
+void inorder(node* t);
+
+};
+
+void printer(char x[],char y[],char z[],char v[],char s[] )
+{
+	cout <<(char)186<<setw(20)<<x<<(char)186<<setw(20)<<y<<(char)186<<setw(20)<<z<<(char)186<<setw(20)<<v<<(char)186<<setw(20)<<s<<(char)186<<endl;
+}
+
+
+
+void avl::inorder(node* t)
+{
+	if(t!=NULL){
+	  
+	inorder(t->left);
+	printer(t->name,t->rollnumber,t->mark,t->attendance_in_percentage,t->contact );
+	inorder(t->right);
+    }
+}
+
+
+
+
+
+int main()
+{
+	int choice;
+	char std[50],rollnumber[50],mark[50],attendance_in_percentage[50],contact[50];
+	avl a;
+	cout << "***********************************************************************************************************************"<< endl;
+	
+	cout << "                                    STUDENT RECORD MANAGEMENT SYSTEM                                             "<<endl;
+	
+	
+	cout << "***********************************************************************************************************************"<<endl;
+	cout << "                                    TEAM MEMBERS                                         " << endl;
+	cout << "  "<< endl;
+	cout << "                                    1.GAYATHRI P                 - 2019115033            " << endl;
+	cout << "                                    2.KURALA MURALIKRISHNA RAMYA - 2019115050            " << endl;
+	cout << "                                    3.LOGADHARSHINI M            - 2019115052            " << endl;
+	cout << "  " << endl;
+	cout << "1.ADD STUDENT RECORD          " << endl;
+	cout << "2.DISPLAY                     " << endl;
+	cout << "3.FIND THE LOWEST MARK        " << endl;
+	cout << "4.FIND THE HIGHEST MARK       " << endl;
+	cout << "5.SEARCH THE STUDENT MARK     " << endl;
+	cout << "6.DELETE THE STUDENT RECORD   " << endl;
+	cout << "7.EXIT                        " << endl;
+	cout << "  "<<endl;
+	
+	while(1)
+	{
+		cout << "ENTER YOUR CHOICE  :  " ;
+		cin >> choice;
+		switch(choice)
+		{
+			case 1 :
+				cout << "ENTER THE STUDENT NAME TO BE INSERTED  :    " ;
+				cin >> std;
+				cout << "ENTER THE ROLL NUMBER                  :    " ;
+				cin >> rollnumber;
+				cout << "TOTAL MARK OUT OF 500                  :    " ;
+				cin >> mark;
+				cout << "ENTER ATTENDANCE IN PERCENTAGE         :    " ;
+				cin >> attendance_in_percentage;
+				cout << "CONTACT NUMBER                         :    " ;
+				cin >> contact;
+				
+				a.insert(std, rollnumber,mark,attendance_in_percentage,contact);
+				cout << " " << endl;
+				cout << "RECORD ADDED SUCCESSFULLY !!! " << endl;
+				cout << "     "<<endl;
+				break;
+			case 2 :
+				
+				cout << "DISPLAY" << endl;
+				a.inorder(root);
+				cout << endl;
+				break;
+			case 3 :
+				cout << "FIND THE LOWEST MARK" << endl;
+				node* temp1;
+				temp1=a.findMin(root);
+				cout << " LOWEST MARK IS " << temp1->mark;
+				cout << endl;
+				break;
+			case 4 :
+				cout << "FIND THE HIGHEST MARK" << endl;
+				node* temp2;
+				temp2=a.findMax(root);
+				cout << "HIGHEST MARK IS " << temp2->mark;
+				cout << endl;
+				break;
+			case 5 : cout<<"ENTER THE STUDENT NAME TO FIND THE MARK"<<endl;
+					cin>>std;
+					a.search(std);
+					break;
+			case 6 :
+				cout << "ENTER THE NAME TO BE DELETED  :  " ;
+				cin >> std;
+				a.remove(std);
+				cout << " RECORD DELETED SUCCESSFULLY !" << endl;
+				break;
+			case 7 :
+				exit(1);
+				break;
+			default :
+				cout << "OUCCH WRONG CHOICE !!!!" << endl;
+				break;
+		}
+	}
+	
+return 0;
+}
